@@ -1,0 +1,24 @@
+model {
+  # 1. Priors for Hyperparameters (Global/Population-level)
+  mu_beta0 ~ dnorm(0, 0.001)
+  sigma_beta0 ~ dnorm(0, 0.0001) T(0,)
+  tau_beta0 <- pow(sigma_beta0, -2)
+
+  beta_income ~ dnorm(0, 0.001)
+  beta_payt ~ dnorm(0, 0.001)
+
+  # 2. Hierarchical Priors (Region-level)
+  for (j in 1:N_geo) {
+    beta0_geo[j] ~ dnorm(mu_beta0, tau_beta0)
+  }
+
+  # 3. Likelihood (Observation-level)
+  for (i in 1:N) {
+    mu[i] = beta0_geo[geo_id[i]] + beta_payt * X_payt[i] + beta_income * X_income[i]
+    Y[i] ~ dnorm(mu[i], tau_Y)
+  }
+
+  # 4. Prior for Observation-level Precision
+  sigma_Y ~ dunif(0, 500)
+  tau_Y <- pow(sigma_Y, -2)
+}

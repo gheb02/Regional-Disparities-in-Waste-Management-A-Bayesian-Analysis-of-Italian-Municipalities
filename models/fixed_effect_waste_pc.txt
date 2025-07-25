@@ -1,0 +1,28 @@
+model {
+  # 1. Priors for Global/Fixed Effects
+
+  # Prior for the common log_income coefficient
+  beta_income ~ dnorm(0, 0.001)
+
+  # Prior for the common payt coefficient
+  beta_payt ~ dnorm(0, 0.001)
+
+  # Fixed effects for Geographical Area (intercepts)
+  # One intercept for each of geographical area
+  for (j in 1:N_geo) {
+    beta_geo[j] ~ dnorm(0, 0.001) # Each area gets its own independent prior
+  }
+
+  # 2. Likelihood (Observation-level)
+  for (i in 1:N) {
+    # Linear predictor
+    mu[i] = beta_geo[geo_id[i]] +
+            beta_payt * X_payt[i] +
+            beta_income * X_income[i] 
+    Y[i] ~ dnorm(mu[i], tau_Y)
+  }
+
+  # 3. Prior for Observation-level Precision
+  sigma_Y ~ dunif(0, 500) # Standard deviation of residuals
+  tau_Y <- pow(sigma_Y, -2) # Precision of residuals
+}
